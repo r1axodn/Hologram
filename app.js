@@ -331,22 +331,28 @@
   }
 
   /* ---------------- pickle ---------------- */
-  function drawEar(x, y, rw, rh, rot) {
+  function drawFeather(x, y, r, rot) {
     var o = octx;
     o.save();
     o.translate(x, y);
     o.rotate(rot);
-    var g = o.createLinearGradient(0, -rh, 0, rh);
-    g.addColorStop(0, '#f2ffdb');
-    g.addColorStop(0.55, PALE);
-    g.addColorStop(1, '#a9e96e');
-    o.fillStyle = g;
-    o.beginPath(); o.ellipse(0, 0, rw * 0.5, rh, 0, 0, TAU); o.fill();
-    o.lineWidth = Math.max(0.8, rh * 0.10);
-    o.strokeStyle = 'rgba(163,230,53,0.62)';
-    o.stroke();
-    o.fillStyle = 'rgba(150,205,90,0.30)';
-    o.beginPath(); o.ellipse(0, rh * 0.12, rw * 0.17, rh * 0.44, 0, 0, TAU); o.fill();
+    var strands = [[-0.44, 0.60], [-0.06, 0.96], [0.36, 0.68]];
+    for (var i = 0; i < strands.length; i++) {
+      var a = strands[i][0], len = strands[i][1];
+      o.save();
+      o.rotate(a);
+      var g = o.createLinearGradient(0, 0, r * len, 0);
+      g.addColorStop(0, 'rgba(244,255,222,0.96)');
+      g.addColorStop(0.55, PALE);
+      g.addColorStop(1, 'rgba(163,230,53,0.70)');
+      o.fillStyle = g;
+      o.strokeStyle = 'rgba(163,230,53,0.50)';
+      o.lineWidth = Math.max(0.5, r * 0.017);
+      o.beginPath();
+      o.ellipse(r * len * 0.5, 0, r * len * 0.5, r * 0.088, 0, 0, TAU);
+      o.fill(); o.stroke();
+      o.restore();
+    }
     o.restore();
   }
 
@@ -370,59 +376,69 @@
     o.fillStyle = bloom;
     o.beginPath(); o.arc(0, 0, r * 2.3, 0, TAU); o.fill();
 
-    // tail (behind)
+    // tail (behind body, short stub)
     o.save();
-    o.translate(-r * 0.86, r * 0.52);
-    o.rotate(-0.55);
-    o.fillStyle = 'rgba(217,249,157,0.85)';
-    o.beginPath(); o.ellipse(0, 0, r * 0.20, r * 0.09, 0, 0, TAU); o.fill();
+    o.translate(-r * 0.72, r * 0.62);
+    o.rotate(-0.45);
+    o.fillStyle = 'rgba(217,249,157,0.9)';
+    o.beginPath(); o.ellipse(-r * 0.10, 0, r * 0.19, r * 0.075, 0, 0, TAU); o.fill();
+    o.strokeStyle = 'rgba(163,230,53,0.45)';
+    o.lineWidth = Math.max(0.5, r * 0.015);
+    o.stroke();
     o.restore();
 
-    // ears
-    drawEar(-r * 0.50, -r * 0.80, r * 0.56, r * 0.33, -0.74);
-    drawEar(r * 0.50, -r * 0.80, r * 0.56, r * 0.33, 0.74);
+    // feather ears (양옆 깃털 귀)
+    drawFeather(r * 0.70, -r * 0.46, r, -0.62);
+    drawFeather(-r * 0.70, -r * 0.46, r, Math.PI + 0.62);
 
-    // body (white)
-    var body = o.createRadialGradient(-r * 0.30, -r * 0.42, r * 0.10, 0, 0, r * 1.24);
+    // body (white, 살짝 긴 둥근 몸통)
+    var body = o.createRadialGradient(-r * 0.28, -r * 0.40, r * 0.10, 0, 0, r * 1.18);
     body.addColorStop(0, '#FFFFFF');
-    body.addColorStop(0.45, '#FAFCF4');
-    body.addColorStop(0.78, '#EDF3E2');
-    body.addColorStop(1, '#DCE7CD');
+    body.addColorStop(0.42, '#FBFDF6');
+    body.addColorStop(0.78, '#EEF4E4');
+    body.addColorStop(1, '#DEE9CF');
     o.fillStyle = body;
-    o.beginPath(); o.ellipse(0, 0, r * 0.97, r, 0, 0, TAU); o.fill();
+    o.beginPath(); o.ellipse(0, 0, r * 0.88, r * 1.0, 0, 0, TAU); o.fill();
 
     // lime rim light
-    o.lineWidth = Math.max(1.0, r * 0.050);
+    o.lineWidth = Math.max(1.0, r * 0.048);
     o.strokeStyle = 'rgba(163,230,53,' + (0.34 + 0.30 * level).toFixed(3) + ')';
-    o.beginPath(); o.ellipse(0, 0, r * 0.955, r * 0.985, 0, 0, TAU); o.stroke();
+    o.beginPath(); o.ellipse(0, 0, r * 0.865, r * 0.985, 0, 0, TAU); o.stroke();
+
+    // soft inner shade at the foot of the body
+    var foot = o.createRadialGradient(0, r * 0.72, r * 0.05, 0, r * 0.72, r * 0.62);
+    foot.addColorStop(0, 'rgba(163,230,53,0.10)');
+    foot.addColorStop(1, 'rgba(163,230,53,0)');
+    o.fillStyle = foot;
+    o.beginPath(); o.ellipse(0, r * 0.72, r * 0.62, r * 0.42, 0, 0, TAU); o.fill();
 
     // specular
-    o.fillStyle = 'rgba(255,255,255,0.55)';
-    o.beginPath(); o.ellipse(-r * 0.34, -r * 0.50, r * 0.24, r * 0.15, -0.5, 0, TAU); o.fill();
+    o.fillStyle = 'rgba(255,255,255,0.60)';
+    o.beginPath(); o.ellipse(-r * 0.30, -r * 0.52, r * 0.21, r * 0.13, -0.5, 0, TAU); o.fill();
 
     // front hands (6다리 중 앞손)
-    var handY = r * 0.44, handX = r * 0.855;
+    var handY = r * 0.36, handX = r * 0.79;
     [-1, 1].forEach(function (s) {
       o.save();
-      o.translate(s * handX, handY + Math.sin(now * 2.1 + (s > 0 ? 1 : 0)) * r * 0.02);
-      o.fillStyle = '#FBFDF6';
-      o.beginPath(); o.arc(0, 0, r * 0.135, 0, TAU); o.fill();
-      o.lineWidth = Math.max(0.8, r * 0.030);
+      o.translate(s * handX, handY + Math.sin(now * 2.1 + (s > 0 ? 1 : 0)) * r * 0.022);
+      o.fillStyle = '#FCFEF8';
+      o.beginPath(); o.arc(0, 0, r * 0.125, 0, TAU); o.fill();
+      o.lineWidth = Math.max(0.8, r * 0.026);
       o.strokeStyle = 'rgba(163,230,53,0.55)';
       o.stroke();
       o.fillStyle = 'rgba(217,249,157,0.85)';
-      o.beginPath(); o.arc(0, r * 0.055, r * 0.045, 0, TAU); o.fill();
+      o.beginPath(); o.arc(0, r * 0.045, r * 0.042, 0, TAU); o.fill();
       o.restore();
     });
 
     // feet
     [-1, 1].forEach(function (s) {
-      o.fillStyle = 'rgba(217,249,157,0.75)';
-      o.beginPath(); o.ellipse(s * r * 0.30, r * 0.965, r * 0.13, r * 0.06, 0, 0, TAU); o.fill();
+      o.fillStyle = 'rgba(217,249,157,0.70)';
+      o.beginPath(); o.ellipse(s * r * 0.26, r * 0.985, r * 0.115, r * 0.052, 0, 0, TAU); o.fill();
     });
 
     // eyes
-    var eyeDX = r * 0.335, eyeY = -r * 0.13;
+    var eyeDX = r * 0.305, eyeY = -r * 0.16;
     var eyeRy = r * 0.305 * (0.10 + 0.90 * blinkAmt) * (1 - 0.18 * speaking);
     [-1, 1].forEach(function (s) {
       var ex = s * eyeDX;
