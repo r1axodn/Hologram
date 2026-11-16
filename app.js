@@ -417,17 +417,17 @@
     o.beginPath(); o.ellipse(-r * 0.30, -r * 0.52, r * 0.21, r * 0.13, -0.5, 0, TAU); o.fill();
 
     // front hands (6다리 중 앞손)
-    var handY = r * 0.36, handX = r * 0.79;
+    var handY = r * 0.38, handX = r * 0.865;
     [-1, 1].forEach(function (s) {
       o.save();
       o.translate(s * handX, handY + Math.sin(now * 2.1 + (s > 0 ? 1 : 0)) * r * 0.022);
-      o.fillStyle = '#FCFEF8';
-      o.beginPath(); o.arc(0, 0, r * 0.125, 0, TAU); o.fill();
-      o.lineWidth = Math.max(0.8, r * 0.026);
-      o.strokeStyle = 'rgba(163,230,53,0.55)';
+      o.fillStyle = '#F3F9E7';
+      o.beginPath(); o.ellipse(0, 0, r * 0.115, r * 0.125, s * 0.35, 0, TAU); o.fill();
+      o.lineWidth = Math.max(0.8, r * 0.024);
+      o.strokeStyle = 'rgba(163,230,53,0.42)';
       o.stroke();
       o.fillStyle = 'rgba(217,249,157,0.85)';
-      o.beginPath(); o.arc(0, r * 0.045, r * 0.042, 0, TAU); o.fill();
+      o.beginPath(); o.arc(0, r * 0.05, r * 0.040, 0, TAU); o.fill();
       o.restore();
     });
 
@@ -458,17 +458,16 @@
       }
     });
 
-    // mouth
-    var lipY = r * 0.45;
+    // mouth (pale lime lips)
+    var lipY = r * 0.445;
     var open = 0.02 + 0.34 * speaking;
     o.fillStyle = PALE;
-    o.beginPath(); o.ellipse(0, lipY, r * 0.235, r * 0.150, 0, 0, TAU); o.fill();
+    o.beginPath(); o.ellipse(0, lipY, r * 0.250, r * 0.115, 0, 0, TAU); o.fill();
     o.fillStyle = '#131c07';
-    o.beginPath(); o.ellipse(0, lipY + r * 0.012, r * 0.145, r * open * 0.55, 0, 0, TAU); o.fill();
-    if (speaking > 0.25) {
-      o.fillStyle = 'rgba(217,249,157,0.55)';
-      o.beginPath(); o.ellipse(0, lipY + r * open * 0.30, r * 0.09, r * 0.028, 0, 0, TAU); o.fill();
-    }
+    o.beginPath(); o.ellipse(0, lipY - r * 0.005, r * 0.158, r * (0.022 + open * 0.50), 0, 0, TAU); o.fill();
+    o.strokeStyle = 'rgba(150,200,80,0.45)';
+    o.lineWidth = Math.max(0.6, r * 0.016);
+    o.beginPath(); o.ellipse(0, lipY, r * 0.250, r * 0.115, 0, 0, TAU); o.stroke();
 
     o.restore();
   }
