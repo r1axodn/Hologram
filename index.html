@@ -23,6 +23,7 @@
       <button class="chip on" data-act="mode-pickle" role="tab">피클</button>
       <button class="chip" data-act="mode-dday" role="tab">D-DAY</button>
       <button class="chip" data-act="mode-timer" role="tab">타이머</button>
+      <button class="chip" data-act="mode-sheet" role="tab">반사판</button>
     </div>
     <a id="callBtn" href="pickle://call" aria-label="피클 부르기">📞 피클 부르기</a>
   </header>
@@ -35,12 +36,13 @@
       <div class="quad q-br"><canvas data-q="br" role="img" aria-label="홀로그램 면 우하"></canvas></div>
       <div id="centerMark" aria-hidden="true"></div>
     </div>
+    <canvas id="sheet" role="img" aria-label="반사판 홀로그램 화면"></canvas>
   </main>
 
   <p id="hint">투명 피라미드를 화면 <b>중앙</b>에 올리고, 아래 <b>Gap · Size</b>로 반사 크기를 맞춰보세요.</p>
 
   <footer id="panel">
-    <div class="row">
+    <div class="row calib">
       <div class="grp">
         <span class="lbl">GAP</span>
         <button class="k" data-act="gap-dec" aria-label="간격 줄이기">−</button>

@@ -31,6 +31,9 @@
     canvases[k] = document.querySelector('canvas[data-q="' + k + '"]');
     ctxs[k] = canvases[k].getContext('2d');
   });
+  var sheetEl = document.getElementById('sheet');
+  var sheetCtx = sheetEl.getContext('2d');
+  var sheetW = 300, sheetH = 400;
   var BASE_ROT = { tl: 180, tr: 270, bl: 90, br: 0 };
 
   var off = document.createElement('canvas');
@@ -50,8 +53,8 @@
   try {
     var saved = JSON.parse(localStorage.getItem(STORE) || 'null');
     if (saved && typeof saved === 'object') {
-      if (saved.mode === 'pickle' || saved.mode === 'dday' || saved.mode === 'timer') state.mode = saved.mode;
-      if (typeof saved.gapPct === 'number') state.gapPct = clamp(saved.gapPct, 0, 0.60);
+      if (saved.mode === 'pickle' || saved.mode === 'dday' || saved.mode === 'timer' || saved.mode === 'sheet') state.mode = saved.mode;
+      if (typeof saved.gapPct === 'number') state.gapPct = clamp(saved.gapPct, 0, 0.80);
       if (typeof saved.sizeScale === 'number') state.sizeScale = clamp(saved.sizeScale, 0.55, 1.2);
       if (typeof saved.flipX === 'boolean') state.flipX = saved.flipX;
       if (typeof saved.rot180 === 'boolean') state.rot180 = saved.rot180;
@@ -75,6 +78,17 @@
   var S = 320, P = 150, px = 150;
 
   function layout() {
+    if (state.mode === 'sheet') {
+      sheetW = Math.max(40, stageBox.clientWidth || 300);
+      sheetH = Math.max(40, stageBox.clientHeight || 300);
+      var sw = Math.round(sheetW * DPR), shh = Math.round(sheetH * DPR);
+      if (sheetEl.width !== sw || sheetEl.height !== shh) { sheetEl.width = sw; sheetEl.height = shh; }
+      sheetEl.style.width = sheetW + 'px';
+      sheetEl.style.height = sheetH + 'px';
+      if (off.width !== sw || off.height !== shh) { off.width = sw; off.height = shh; }
+      return;
+    }
+
     var bw = stageBox.clientWidth || 300;
     var bh = stageBox.clientHeight || 300;
     S = Math.max(140, Math.floor(Math.min(bw, bh)));
@@ -82,7 +96,7 @@
     stage.style.height = S + 'px';
 
     var gap = Math.round(S * state.gapPct);
-    P = Math.max(48, Math.floor((S - gap) / 2));
+    P = Math.max(36, Math.floor((S - gap) / 2));
     px = Math.round(P * DPR);
 
     CANVAS_KEYS.forEach(function (k) {
@@ -376,16 +390,62 @@
     o.fillStyle = bloom;
     o.beginPath(); o.arc(0, 0, r * 2.3, 0, TAU); o.fill();
 
-    // tail (behind body, short stub)
+    // tail (behind body, 짧은 꼬리 — 옆구리 위쪽으로)
     o.save();
-    o.translate(-r * 0.72, r * 0.62);
-    o.rotate(-0.45);
+    o.translate(-r * 0.80, r * 0.06);
+    o.rotate(-0.30);
     o.fillStyle = 'rgba(217,249,157,0.9)';
-    o.beginPath(); o.ellipse(-r * 0.10, 0, r * 0.19, r * 0.075, 0, 0, TAU); o.fill();
-    o.strokeStyle = 'rgba(163,230,53,0.45)';
+    o.beginPath(); o.ellipse(-r * 0.10, 0, r * 0.16, r * 0.062, 0, 0, TAU); o.fill();
+    o.strokeStyle = 'rgba(120,165,55,0.40)';
     o.lineWidth = Math.max(0.5, r * 0.015);
     o.stroke();
     o.restore();
+
+    // 3쌍의 짧은 다리 (몸 아래쪽에 마디가 보이는 형태로)
+    var lw = Math.max(1.8, r * 0.070);
+    var legs = [
+      { s: 0.26, l1: 0.16, l2: 0.11, big: true },   // 앞다리 = 앞손
+      { s: 0.55, l1: 0.15, l2: 0.10, big: false },
+      { s: 0.82, l1: 0.13, l2: 0.09, big: false }
+    ];
+    o.lineCap = 'round';
+    o.lineJoin = 'round';
+    for (var gi = 0; gi < legs.length; gi++) {
+      var g = legs[gi];
+      var sig = Math.asin(g.s);
+      for (sd = -1; sd <= 1; sd += 2) {
+        var ax = sd * r * 0.86 * g.s;
+        var ay = r * 0.97 * Math.cos(sig) - r * 0.02;
+        var wig = Math.sin(now * 2.0 + gi * 0.9 + (sd > 0 ? 0.7 : 0)) * 0.05;
+
+        var x1 = ax + sd * Math.sin(sig) * r * g.l1;
+        var y1 = ay + Math.cos(sig) * r * g.l1;
+
+        var sig2 = sig * 0.55 + wig;
+        var x2 = x1 + sd * Math.sin(sig2) * r * g.l2;
+        var y2 = y1 + Math.cos(sig2) * r * g.l2;
+
+        o.beginPath();
+        o.moveTo(ax, ay);
+        o.lineTo(x1, y1);
+        o.lineTo(x2, y2);
+        o.lineWidth = lw + Math.max(1.2, r * 0.040);
+        o.strokeStyle = 'rgba(105,150,50,0.32)';
+        o.stroke();
+        o.lineWidth = lw;
+        o.strokeStyle = '#dcf79e';
+        o.stroke();
+
+        // 발(마디 끝)
+        o.beginPath();
+        o.arc(x2, y2, lw * (g.big ? 0.92 : 0.70), 0, TAU);
+        o.fillStyle = g.big ? '#eaffc8' : '#cdec8a';
+        o.fill();
+        o.lineWidth = Math.max(0.5, lw * 0.26);
+        o.strokeStyle = 'rgba(105,150,50,0.38)';
+        o.stroke();
+      }
+    }
 
     // feather ears (양옆 깃털 귀)
     drawFeather(r * 0.70, -r * 0.46, r, -0.62);
@@ -415,27 +475,6 @@
     // specular
     o.fillStyle = 'rgba(255,255,255,0.60)';
     o.beginPath(); o.ellipse(-r * 0.30, -r * 0.52, r * 0.21, r * 0.13, -0.5, 0, TAU); o.fill();
-
-    // front hands (6다리 중 앞손)
-    var handY = r * 0.38, handX = r * 0.865;
-    [-1, 1].forEach(function (s) {
-      o.save();
-      o.translate(s * handX, handY + Math.sin(now * 2.1 + (s > 0 ? 1 : 0)) * r * 0.022);
-      o.fillStyle = '#F3F9E7';
-      o.beginPath(); o.ellipse(0, 0, r * 0.115, r * 0.125, s * 0.35, 0, TAU); o.fill();
-      o.lineWidth = Math.max(0.8, r * 0.024);
-      o.strokeStyle = 'rgba(163,230,53,0.42)';
-      o.stroke();
-      o.fillStyle = 'rgba(217,249,157,0.85)';
-      o.beginPath(); o.arc(0, r * 0.05, r * 0.040, 0, TAU); o.fill();
-      o.restore();
-    });
-
-    // feet
-    [-1, 1].forEach(function (s) {
-      o.fillStyle = 'rgba(217,249,157,0.70)';
-      o.beginPath(); o.ellipse(s * r * 0.26, r * 0.985, r * 0.115, r * 0.052, 0, 0, TAU); o.fill();
-    });
 
     // eyes
     var eyeDX = r * 0.305, eyeY = -r * 0.16;
@@ -627,8 +666,98 @@
     }
   }
 
+  /* ---------------- reflector (반사판 / Pepper's ghost) ---------------- */
+  function sheetTimerText() {
+    return timer.kind === 'pomo' ? fmtClock(timer.remaining) : fmtClock(timer.elapsed);
+  }
+
+  function sheetStatus() {
+    if (timer.kind === 'pomo' && timer.done) return '25분 완료 · 쉬어가요';
+    if (timer.running) return timer.kind === 'pomo' ? '집중 중' : '기록 중';
+    if (timer.kind === 'pomo' && timer.remaining >= POMO) return '타이머 준비';
+    if (timer.kind === 'stop' && timer.elapsed === 0) return '스톱워치 준비';
+    return '일시정지';
+  }
+
+  function drawSheet(W, H, now) {
+    var u = Math.min(W, H);
+    var t = kstNow();
+    var examDiff = dayDiff(t, 2026, 12, 8);
+    var sunDiff = dayDiff(t, 2027, 11, 18);
+    var wide = W > H * 1.15;
+    var pulse = 0.84 + 0.16 * (0.5 + 0.5 * Math.sin(now * 2.0));
+
+    if (!wide) {
+      /* --- 세로: D-DAY → 피클 코어 → 타이머 --- */
+      txt(pad2(t.hh) + ':' + pad2(t.mm) + ':' + pad2(t.ss), W / 2, H * 0.078, u * 0.070, '#eaffc8', 'center', '700', true);
+      txt(t.m + '월 ' + t.d + '일 ' + WD[t.wd] + '요일', W / 2, H * 0.128, u * 0.035, 'rgba(217,249,157,0.52)', 'center', '600');
+
+      txt('2학기 기말고사', W / 2, H * 0.180, u * 0.040, 'rgba(217,249,157,0.72)', 'center', '600');
+      octx.save();
+      octx.shadowColor = 'rgba(163,230,53,0.80)'; octx.shadowBlur = u * 0.09;
+      txt(ddLabel(examDiff), W / 2, H * 0.242, u * 0.125, 'rgba(198,244,110,' + pulse.toFixed(3) + ')', 'center', '800', true);
+      octx.restore();
+      txt('수능 ' + ddLabel(sunDiff) + '  ·  2027.11.18', W / 2, H * 0.312, u * 0.042, 'rgba(217,249,157,0.70)', 'center', '600', true);
+
+      var coreU = Math.min(W * 0.94, H * 0.42);
+      drawCore(W / 2, H * 0.525, coreU, now);
+      drawPickle(W / 2, H * 0.505, coreU * 0.198, now);
+
+      txt(timer.kind === 'pomo' ? '뽀모도로 25분' : '스톱워치', W / 2, H * 0.780, u * 0.034, 'rgba(217,249,157,0.55)', 'center', '600');
+      octx.save();
+      octx.shadowColor = 'rgba(163,230,53,0.55)'; octx.shadowBlur = u * 0.07;
+      txt(sheetTimerText(), W / 2, H * 0.850, u * 0.110, '#f2ffd6', 'center', '800', true);
+      octx.restore();
+      txt(sheetStatus(), W / 2, H * 0.918, u * 0.030, 'rgba(217,249,157,0.50)', 'center', '600');
+    } else {
+      /* --- 가로: 피클 코어 | D-DAY + 타이머 --- */
+      var coreU2 = Math.min(W * 0.44, H * 0.86);
+      var lx = W * 0.27, ly = H * 0.50;
+      drawCore(lx, ly, coreU2, now);
+      drawPickle(lx, ly - coreU2 * 0.02, coreU2 * 0.198, now);
+
+      var rx = W * 0.72;
+      txt(pad2(t.hh) + ':' + pad2(t.mm) + ':' + pad2(t.ss), rx, H * 0.095, u * 0.072, '#eaffc8', 'center', '700', true);
+      txt(t.m + '월 ' + t.d + '일 ' + WD[t.wd] + '요일', rx, H * 0.160, u * 0.034, 'rgba(217,249,157,0.52)', 'center', '600');
+
+      txt('2학기 기말고사', rx, H * 0.235, u * 0.038, 'rgba(217,249,157,0.72)', 'center', '600');
+      octx.save();
+      octx.shadowColor = 'rgba(163,230,53,0.80)'; octx.shadowBlur = u * 0.09;
+      txt(ddLabel(examDiff), rx, H * 0.330, u * 0.135, 'rgba(198,244,110,' + pulse.toFixed(3) + ')', 'center', '800', true);
+      octx.restore();
+      txt('12.08 화 08:30 미적분Ⅰ', rx, H * 0.420, u * 0.030, 'rgba(217,249,157,0.48)', 'center', '500');
+
+      txt('수능 ' + ddLabel(sunDiff) + '  ·  2027.11.18', rx, H * 0.495, u * 0.042, 'rgba(217,249,157,0.70)', 'center', '600', true);
+
+      octx.beginPath();
+      octx.moveTo(rx - u * 0.22, H * 0.560);
+      octx.lineTo(rx + u * 0.22, H * 0.560);
+      octx.lineWidth = 1; octx.strokeStyle = 'rgba(163,230,53,0.18)'; octx.stroke();
+
+      txt(timer.kind === 'pomo' ? '뽀모도로 25분' : '스톱워치', rx, H * 0.640, u * 0.032, 'rgba(217,249,157,0.55)', 'center', '600');
+      octx.save();
+      octx.shadowColor = 'rgba(163,230,53,0.55)'; octx.shadowBlur = u * 0.07;
+      txt(sheetTimerText(), rx, H * 0.740, u * 0.105, '#f2ffd6', 'center', '800', true);
+      octx.restore();
+      txt(sheetStatus(), rx, H * 0.830, u * 0.028, 'rgba(217,249,157,0.50)', 'center', '600');
+    }
+  }
+
   /* ---------------- render ---------------- */
   function render(now) {
+    if (state.mode === 'sheet') {
+      if (off.width !== sheetEl.width || off.height !== sheetEl.height) {
+        off.width = sheetEl.width; off.height = sheetEl.height;
+      }
+      octx.setTransform(DPR, 0, 0, DPR, 0, 0);
+      octx.clearRect(0, 0, sheetW, sheetH);
+      drawSheet(sheetW, sheetH, now);
+      sheetCtx.setTransform(1, 0, 0, 1, 0, 0);
+      sheetCtx.clearRect(0, 0, off.width, off.height);
+      sheetCtx.drawImage(off, 0, 0);
+      return;
+    }
+
     var W = P, H = P, u = Math.min(W, H);
     var cx = W / 2, cy = H / 2;
 
@@ -731,15 +860,18 @@
     document.querySelector('[data-act="kind-stop"]').classList.toggle('on', timer.kind === 'stop');
     tRun.textContent = timer.running ? '⏸ 일시정지' : (timer.kind === 'pomo' && timer.remaining < POMO && !timer.done ? '▶ 계속' : '▶ 시작');
 
-    timerCtl.style.display = state.mode === 'timer' ? '' : 'none';
+    timerCtl.style.display = (state.mode === 'timer' || state.mode === 'sheet') ? '' : 'none';
     document.querySelector('[data-act="chrome"]').textContent = document.body.classList.contains('clean') ? '보이기' : '숨기기';
   }
 
   function setMode(m) {
     state.mode = m;
     save();
+    document.body.classList.toggle('mode-sheet', m === 'sheet');
+    layout();
     updateUI();
-    if (m === 'timer') hint.classList.add('gone');
+    if (m === 'timer' || m === 'sheet') hint.classList.add('gone');
+    if (m === 'sheet') toast('화면 밝기 최대로 · 아크릴판을 45°로 세워주세요');
   }
 
   document.addEventListener('click', function (ev) {
@@ -751,9 +883,10 @@
       case 'mode-pickle': setMode('pickle'); break;
       case 'mode-dday': setMode('dday'); break;
       case 'mode-timer': setMode('timer'); break;
+      case 'mode-sheet': setMode('sheet'); break;
 
-      case 'gap-inc': state.gapPct = clamp(state.gapPct + 0.02, 0, 0.60); layout(); save(); updateUI(); break;
-      case 'gap-dec': state.gapPct = clamp(state.gapPct - 0.02, 0, 0.60); layout(); save(); updateUI(); break;
+      case 'gap-inc': state.gapPct = clamp(state.gapPct + 0.02, 0, 0.80); layout(); save(); updateUI(); break;
+      case 'gap-dec': state.gapPct = clamp(state.gapPct - 0.02, 0, 0.80); layout(); save(); updateUI(); break;
       case 'size-inc': state.sizeScale = clamp(Math.round((state.sizeScale + 0.05) * 100) / 100, 0.55, 1.2); save(); updateUI(); break;
       case 'size-dec': state.sizeScale = clamp(Math.round((state.sizeScale - 0.05) * 100) / 100, 0.55, 1.2); save(); updateUI(); break;
       case 'flip': state.flipX = !state.flipX; layout(); save(); updateUI(); break;
@@ -819,6 +952,8 @@
 
   layout();
   updateUI();
+  document.body.classList.toggle('mode-sheet', state.mode === 'sheet');
+  if (state.mode === 'sheet') layout();
   requestAnimationFrame(frame);
 
   setTimeout(function () { hint.classList.add('gone'); }, 9000);

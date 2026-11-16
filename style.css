@@ -70,6 +70,18 @@ body{
 }
 #stage{position:relative;width:0;height:0}
 
+#sheet{
+  display:none;
+  width:100%;height:100%;
+  transform:scaleY(-1);
+  transform-origin:50% 50%;
+}
+body.mode-sheet #stage{display:none}
+body.mode-sheet #sheet{display:block}
+body.mode-sheet #hint{display:none}
+body.mode-sheet .row.calib{display:none}
+body.mode-sheet #stageBox{padding:0}
+
 .quad{position:absolute;overflow:hidden}
 .q-tl{left:0;top:0}
 .q-tr{right:0;top:0}
