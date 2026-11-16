@@ -51,7 +51,7 @@
     var saved = JSON.parse(localStorage.getItem(STORE) || 'null');
     if (saved && typeof saved === 'object') {
       if (saved.mode === 'pickle' || saved.mode === 'dday' || saved.mode === 'timer') state.mode = saved.mode;
-      if (typeof saved.gapPct === 'number') state.gapPct = clamp(saved.gapPct, 0, 0.44);
+      if (typeof saved.gapPct === 'number') state.gapPct = clamp(saved.gapPct, 0, 0.60);
       if (typeof saved.sizeScale === 'number') state.sizeScale = clamp(saved.sizeScale, 0.55, 1.2);
       if (typeof saved.flipX === 'boolean') state.flipX = saved.flipX;
       if (typeof saved.rot180 === 'boolean') state.rot180 = saved.rot180;
@@ -193,6 +193,9 @@
       var rms = Math.sqrt(sum / timeData.length);
       var target = clamp((rms - 0.010) * 5.4, 0, 1);
       level = lerp(level, target, target > level ? 0.42 : 0.10);
+      // 무음이어도 코어가 완전히 꺼지지 않게 최소 호흡만 남긴다
+      var floor = 0.030 + 0.018 * (0.5 + 0.5 * Math.sin(now * 1.15));
+      if (level < floor) level = floor;
 
       var n = freqData.length;
       for (i = 0; i < BARS; i++) {
@@ -376,8 +379,8 @@
     o.restore();
 
     // ears
-    drawEar(-r * 0.46, -r * 0.80, r * 0.50, r * 0.30, -0.62);
-    drawEar(r * 0.46, -r * 0.80, r * 0.50, r * 0.30, 0.62);
+    drawEar(-r * 0.50, -r * 0.80, r * 0.56, r * 0.33, -0.74);
+    drawEar(r * 0.50, -r * 0.80, r * 0.56, r * 0.33, 0.74);
 
     // body (white)
     var body = o.createRadialGradient(-r * 0.30, -r * 0.42, r * 0.10, 0, 0, r * 1.24);
@@ -457,7 +460,7 @@
   /* ---------------- modes ---------------- */
   function drawPickleMode(cx, cy, u, now) {
     drawCore(cx, cy, u, now);
-    drawPickle(cx, cy - u * 0.02, u * 0.185, now);
+    drawPickle(cx, cy - u * 0.02, u * 0.198, now);
   }
 
   var KST_FMT = new Intl.DateTimeFormat('en-US', {
@@ -738,8 +741,8 @@
       case 'mode-dday': setMode('dday'); break;
       case 'mode-timer': setMode('timer'); break;
 
-      case 'gap-inc': state.gapPct = clamp(state.gapPct + 0.02, 0, 0.44); layout(); save(); updateUI(); break;
-      case 'gap-dec': state.gapPct = clamp(state.gapPct - 0.02, 0, 0.44); layout(); save(); updateUI(); break;
+      case 'gap-inc': state.gapPct = clamp(state.gapPct + 0.02, 0, 0.60); layout(); save(); updateUI(); break;
+      case 'gap-dec': state.gapPct = clamp(state.gapPct - 0.02, 0, 0.60); layout(); save(); updateUI(); break;
       case 'size-inc': state.sizeScale = clamp(Math.round((state.sizeScale + 0.05) * 100) / 100, 0.55, 1.2); save(); updateUI(); break;
       case 'size-dec': state.sizeScale = clamp(Math.round((state.sizeScale - 0.05) * 100) / 100, 0.55, 1.2); save(); updateUI(); break;
       case 'flip': state.flipX = !state.flipX; layout(); save(); updateUI(); break;
