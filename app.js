@@ -109,6 +109,14 @@
   var WAVE = 96;
   var wave = new Float32Array(WAVE);
 
+  function ensureAudioCtx() {
+    if (audioCtx) return audioCtx;
+    var AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return null;
+    try { audioCtx = new AC(); } catch (e) { audioCtx = null; }
+    return audioCtx;
+  }
+
   function startMic() {
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
       return Promise.reject(new Error('unsupported'));
@@ -117,12 +125,13 @@
       audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false }
     }).then(function (stream) {
       micStream = stream;
-      var AC = window.AudioContext || window.webkitAudioContext;
-      audioCtx = new AC();
-      var p = audioCtx.resume ? audioCtx.resume() : Promise.resolve();
+      var ctx = ensureAudioCtx();
+      if (!ctx) throw new Error('no-audio-context');
+      audioCtx = ctx;
+      var p = ctx.resume ? ctx.resume() : Promise.resolve();
       return Promise.resolve(p).then(function () {
-        var src = audioCtx.createMediaStreamSource(stream);
-        analyser = audioCtx.createAnalyser();
+        var src = ctx.createMediaStreamSource(stream);
+        analyser = ctx.createAnalyser();
         analyser.fftSize = 1024;
         analyser.smoothingTimeConstant = 0.72;
         src.connect(analyser);
@@ -157,6 +166,9 @@
       return;
     }
     toast('마이크 권한을 확인하는 중…');
+    // iOS는 사용자 제스처 안에서 AudioContext를 만들어야 소리가 열린다
+    var ctx = ensureAudioCtx();
+    if (ctx && ctx.resume) { try { ctx.resume(); } catch (e) { } }
     startMic().then(function () {
       updateUI();
       toast('마이크 켜짐 · 말해보세요 🎙');
@@ -255,11 +267,11 @@
     o.beginPath(); o.arc(cx, cy, u * 0.62, 0, TAU); o.fill();
 
     // spectrum bars
-    var r0 = u * 0.352;
+    var r0 = u * 0.340;
     o.lineCap = 'round';
     for (i = 0; i < BARS; i++) {
       a = (i / BARS) * TAU - Math.PI / 2;
-      var len = u * (0.012 + 0.115 * bars[i]);
+      var len = u * (0.010 + 0.100 * bars[i]);
       o.beginPath();
       o.moveTo(cx + Math.cos(a) * r0, cy + Math.sin(a) * r0);
       o.lineTo(cx + Math.cos(a) * (r0 + len), cy + Math.sin(a) * (r0 + len));
@@ -269,7 +281,7 @@
     }
 
     // waveform ring
-    var rW = u * 0.455, amp = u * 0.030 * (0.45 + level);
+    var rW = u * 0.442, amp = u * 0.024 * (0.45 + level);
     o.beginPath();
     for (i = 0; i <= WAVE; i++) {
       var k = i % WAVE;
@@ -502,39 +514,40 @@
     hudFrame(cx, cy, u);
 
     // clock
-    txt(pad2(t.hh) + ':' + pad2(t.mm), cx, cy - u * 0.365, u * 0.175, '#eaffc8', 'center', '700', true);
-    txt(':' + pad2(t.ss) + '  ' + pad2(t.m + 0) + '.' + pad2(t.d) + ' ' + WD[t.wd],
-        cx, cy - u * 0.245, u * 0.062, 'rgba(217,249,157,0.55)', 'center', '600', true);
+    txt(pad2(t.hh) + ':' + pad2(t.mm) + ':' + pad2(t.ss),
+        cx, cy - u * 0.355, u * 0.125, '#eaffc8', 'center', '700', true);
+    txt(t.m + '월 ' + t.d + '일 ' + WD[t.wd] + '요일',
+        cx, cy - u * 0.262, u * 0.055, 'rgba(217,249,157,0.55)', 'center', '600');
 
     // divider
     octx.beginPath();
-    octx.moveTo(cx - u * 0.24, cy - u * 0.185);
-    octx.lineTo(cx + u * 0.24, cy - u * 0.185);
+    octx.moveTo(cx - u * 0.24, cy - u * 0.205);
+    octx.lineTo(cx + u * 0.24, cy - u * 0.205);
     octx.lineWidth = 1;
     octx.strokeStyle = 'rgba(163,230,53,0.20)';
     octx.stroke();
 
-    txt('2학기 기말고사', cx, cy - u * 0.115, u * 0.058, 'rgba(217,249,157,0.72)', 'center', '600');
+    txt('2학기 기말고사', cx, cy - u * 0.140, u * 0.058, 'rgba(217,249,157,0.72)', 'center', '600');
 
     var pulse = 0.82 + 0.18 * (0.5 + 0.5 * Math.sin(now * 2.0));
     octx.save();
     octx.shadowColor = 'rgba(163,230,53,0.75)';
     octx.shadowBlur = u * 0.14;
-    txt(ddLabel(examDiff), cx, cy + u * 0.045, u * 0.265, 'rgba(198,244,110,' + pulse.toFixed(3) + ')', 'center', '800', true);
+    txt(ddLabel(examDiff), cx, cy + u * 0.030, u * 0.250, 'rgba(198,244,110,' + pulse.toFixed(3) + ')', 'center', '800', true);
     octx.restore();
 
-    txt('12.08 화 08:30 미적분Ⅰ', cx, cy + u * 0.195, u * 0.052, 'rgba(217,249,157,0.50)', 'center', '500');
+    txt('12.08 화 08:30 미적분Ⅰ', cx, cy + u * 0.180, u * 0.050, 'rgba(217,249,157,0.50)', 'center', '500');
 
-    // suneung + progress
+    // suneung
     octx.beginPath();
-    octx.moveTo(cx - u * 0.24, cy + u * 0.245);
-    octx.lineTo(cx + u * 0.24, cy + u * 0.245);
+    octx.moveTo(cx - u * 0.24, cy + u * 0.235);
+    octx.lineTo(cx + u * 0.24, cy + u * 0.235);
     octx.lineWidth = 1;
     octx.strokeStyle = 'rgba(163,230,53,0.20)';
     octx.stroke();
 
-    txt('수능 ' + ddLabel(sunDiff), cx, cy + u * 0.325, u * 0.105, 'rgba(217,249,157,0.80)', 'center', '700', true);
-    txt('2027.11.18', cx, cy + u * 0.415, u * 0.048, 'rgba(217,249,157,0.38)', 'center', '500', true);
+    txt('수능 ' + ddLabel(sunDiff), cx, cy + u * 0.325, u * 0.100, 'rgba(217,249,157,0.80)', 'center', '700', true);
+    txt('2027.11.18', cx, cy + u * 0.412, u * 0.046, 'rgba(217,249,157,0.38)', 'center', '500', true);
   }
 
   function fmtClock(sec) {
@@ -547,7 +560,6 @@
     hudFrame(cx, cy, u);
 
     var isPomo = timer.kind === 'pomo';
-    var total = isPomo ? POMO : 0;
     var main = isPomo ? timer.remaining : timer.elapsed;
     var prog = isPomo ? (1 - timer.remaining / POMO) : ((timer.elapsed % 1500) / 1500);
     var done = isPomo && timer.done;
