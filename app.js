@@ -413,7 +413,7 @@
     for (var gi = 0; gi < legs.length; gi++) {
       var g = legs[gi];
       var sig = Math.asin(g.s);
-      for (sd = -1; sd <= 1; sd += 2) {
+      for (var sd = -1; sd <= 1; sd += 2) {
         var ax = sd * r * 0.86 * g.s;
         var ay = r * 0.97 * Math.cos(sig) - r * 0.02;
         var wig = Math.sin(now * 2.0 + gi * 0.9 + (sd > 0 ? 0.7 : 0)) * 0.05;
