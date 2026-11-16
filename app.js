@@ -615,10 +615,6 @@
     txt(label, cx, cy + u * 0.005, size, '#f2ffd6', 'center', '800', true);
     octx.restore();
 
-    if (!isPomo && timer.elapsed > 0) {
-      txt('.' + pad2(Math.floor((timer.elapsed * 100) % 100)), cx + u * 0.245, cy + u * 0.035, u * 0.062, 'rgba(217,249,157,0.45)', 'left', '600', true);
-    }
-
     var status = done ? '25분 완료 · 쉬어가요' : (timer.running ? (isPomo ? '집중 중' : '기록 중') : (main === (isPomo ? POMO : 0) ? '준비' : '일시정지'));
     txt(status, cx, cy + u * 0.275, u * 0.062, timer.running ? 'rgba(198,244,110,0.9)' : 'rgba(217,249,157,0.5)', 'center', '600');
 
