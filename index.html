@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+<meta name="theme-color" content="#000000">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="피클 홀로그램">
+<meta name="description" content="투명 사각뿔(피라미드)을 올려놓고 보는 4면 피라미드 홀로그램 — 피클 코어 · D-DAY · 공부 타이머">
+<title>피클 홀로그램 · 4면 피라미드</title>
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="style.css">
+<script>window.__errs=[];addEventListener("error",function(e){window.__errs.push(String(e&&e.message||e))});addEventListener("unhandledrejection",function(e){window.__errs.push("rejection:"+String(e&&e.reason))});</script>
+</head>
+<body>
+
+<div id="app">
+
+  <header id="bar">
+    <div class="modes" role="tablist" aria-label="모드">
+      <button class="chip on" data-act="mode-pickle" role="tab">피클</button>
+      <button class="chip" data-act="mode-dday" role="tab">D-DAY</button>
+      <button class="chip" data-act="mode-timer" role="tab">타이머</button>
+    </div>
+    <a id="callBtn" href="pickle://call" aria-label="피클 부르기">📞 피클 부르기</a>
+  </header>
+
+  <main id="stageBox">
+    <div id="stage">
+      <div class="quad q-tl"><canvas data-q="tl"></canvas></div>
+      <div class="quad q-tr"><canvas data-q="tr"></canvas></div>
+      <div class="quad q-bl"><canvas data-q="bl"></canvas></div>
+      <div class="quad q-br"><canvas data-q="br"></canvas></div>
+      <div id="centerMark" aria-hidden="true"></div>
+    </div>
+  </main>
+
+  <p id="hint">투명 피라미드를 화면 <b>중앙</b>에 올리고, 아래 <b>Gap · Size</b>로 반사 크기를 맞춰보세요.</p>
+
+  <footer id="panel">
+    <div class="row">
+      <div class="grp">
+        <span class="lbl">GAP</span>
+        <button class="k" data-act="gap-dec" aria-label="간격 줄이기">−</button>
+        <span class="val" id="gapVal">14%</span>
+        <button class="k" data-act="gap-inc" aria-label="간격 늘리기">+</button>
+      </div>
+      <div class="grp">
+        <span class="lbl">SIZE</span>
+        <button class="k" data-act="size-dec" aria-label="크기 줄이기">−</button>
+        <span class="val" id="sizeVal">0.94</span>
+        <button class="k" data-act="size-inc" aria-label="크기 늘리기">+</button>
+      </div>
+      <div class="grp">
+        <button class="chip sm" data-act="flip">FLIP X</button>
+        <button class="chip sm" data-act="rot180">180°</button>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="grp" id="timerCtl">
+        <button class="chip sm" data-act="kind-pomo">뽀모 25</button>
+        <button class="chip sm" data-act="kind-stop">스톱워치</button>
+        <button class="chip sm accent" data-act="t-run" id="tRun">▶ 시작</button>
+        <button class="chip sm" data-act="t-reset">⟲</button>
+      </div>
+      <div class="grp">
+        <button class="chip sm" data-act="mic" id="micBtn">🎙 마이크</button>
+        <button class="chip sm" data-act="chrome">숨기기</button>
+      </div>
+    </div>
+  </footer>
+
+</div>
+
+<button id="reveal" data-act="chrome" aria-label="컨트롤 표시">⋯</button>
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script src="app.js"></script>
+</body>
+</html>
