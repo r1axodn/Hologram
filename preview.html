@@ -13,7 +13,7 @@
 <body>
 <div id="wrap">
   <div id="label"></div>
-  <iframe id="f" src="index.html" allow="microphone"></iframe>
+  <iframe id="f" allow="microphone"></iframe>
 </div>
 <script>
   var q = new URLSearchParams(location.search);
@@ -22,6 +22,7 @@
   var f = document.getElementById('f');
   f.style.width = w + 'px';
   f.style.height = h + 'px';
+  f.src = 'index.html?v=' + (q.get('v') || '0');
   document.getElementById('label').textContent = w + ' × ' + h;
 </script>
 </body>
