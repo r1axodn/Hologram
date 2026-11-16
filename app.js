@@ -350,6 +350,7 @@
     o.save();
     o.translate(x, y);
     o.rotate(rot);
+    o.globalAlpha = 0.82;
     var strands = [[-0.44, 0.60], [-0.06, 0.96], [0.36, 0.68]];
     for (var i = 0; i < strands.length; i++) {
       var a = strands[i][0], len = strands[i][1];
@@ -402,26 +403,26 @@
     o.restore();
 
     // 3쌍의 짧은 다리 (몸 아래쪽에 마디가 보이는 형태로)
-    var lw = Math.max(1.8, r * 0.070);
+    var lw = Math.max(2.0, r * 0.074);
     var legs = [
-      { s: 0.26, l1: 0.16, l2: 0.11, big: true },   // 앞다리 = 앞손
-      { s: 0.55, l1: 0.15, l2: 0.10, big: false },
-      { s: 0.82, l1: 0.13, l2: 0.09, big: false }
+      { a: 15, l1: 0.135, l2: 0.090, big: true },   // 앞다리 = 앞손
+      { a: 33, l1: 0.125, l2: 0.082, big: false },
+      { a: 51, l1: 0.110, l2: 0.075, big: false }
     ];
     o.lineCap = 'round';
     o.lineJoin = 'round';
     for (var gi = 0; gi < legs.length; gi++) {
       var g = legs[gi];
-      var sig = Math.asin(g.s);
+      var sig = g.a * Math.PI / 180;
       for (var sd = -1; sd <= 1; sd += 2) {
-        var ax = sd * r * 0.86 * g.s;
-        var ay = r * 0.97 * Math.cos(sig) - r * 0.02;
-        var wig = Math.sin(now * 2.0 + gi * 0.9 + (sd > 0 ? 0.7 : 0)) * 0.05;
+        var ax = sd * r * 0.84 * Math.sin(sig);
+        var ay = r * 0.96 * Math.cos(sig);
+        var wig = Math.sin(now * 2.0 + gi * 0.9 + (sd > 0 ? 0.7 : 0)) * 0.04;
 
         var x1 = ax + sd * Math.sin(sig) * r * g.l1;
         var y1 = ay + Math.cos(sig) * r * g.l1;
 
-        var sig2 = sig * 0.55 + wig;
+        var sig2 = sig * 0.30 + wig;
         var x2 = x1 + sd * Math.sin(sig2) * r * g.l2;
         var y2 = y1 + Math.cos(sig2) * r * g.l2;
 
@@ -429,27 +430,33 @@
         o.moveTo(ax, ay);
         o.lineTo(x1, y1);
         o.lineTo(x2, y2);
-        o.lineWidth = lw + Math.max(1.2, r * 0.040);
-        o.strokeStyle = 'rgba(105,150,50,0.32)';
+        o.lineWidth = lw + Math.max(1.3, r * 0.042);
+        o.strokeStyle = 'rgba(88,132,38,0.34)';
         o.stroke();
         o.lineWidth = lw;
-        o.strokeStyle = '#dcf79e';
+        o.strokeStyle = '#cbe97f';
         o.stroke();
 
-        // 발(마디 끝)
+        // 마디(관절) 점
         o.beginPath();
-        o.arc(x2, y2, lw * (g.big ? 0.92 : 0.70), 0, TAU);
-        o.fillStyle = g.big ? '#eaffc8' : '#cdec8a';
+        o.arc(x1, y1, lw * 0.46, 0, TAU);
+        o.fillStyle = '#ecffc9';
         o.fill();
-        o.lineWidth = Math.max(0.5, lw * 0.26);
-        o.strokeStyle = 'rgba(105,150,50,0.38)';
+
+        // 발
+        o.beginPath();
+        o.arc(x2, y2, lw * (g.big ? 0.86 : 0.66), 0, TAU);
+        o.fillStyle = g.big ? '#eaffc8' : '#d5ef96';
+        o.fill();
+        o.lineWidth = Math.max(0.5, lw * 0.22);
+        o.strokeStyle = 'rgba(88,132,38,0.40)';
         o.stroke();
       }
     }
 
-    // feather ears (양옆 깃털 귀)
-    drawFeather(r * 0.70, -r * 0.46, r, -0.62);
-    drawFeather(-r * 0.70, -r * 0.46, r, Math.PI + 0.62);
+    // feather ears (양옆 깃털 귀 — 다리와 구분되도록 위쪽으로 길게)
+    drawFeather(r * 0.58, -r * 0.62, r * 1.05, -1.02);
+    drawFeather(-r * 0.58, -r * 0.62, r * 1.05, Math.PI + 1.02);
 
     // body (white, 살짝 긴 둥근 몸통)
     var body = o.createRadialGradient(-r * 0.28, -r * 0.40, r * 0.10, 0, 0, r * 1.18);
